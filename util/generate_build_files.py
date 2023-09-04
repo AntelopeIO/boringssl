@@ -534,10 +534,14 @@ endif()
           files['crypto'] + ['${CRYPTO_SOURCES_ASM_USED}'])
       cmake.write('target_include_directories(crypto PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/include>)\n\n')
       self.PrintLibrary(cmake, 'ssl', files['ssl'], ['crypto'])
+      self.PrintLibrary(cmake, 'decrepit', files['decrepit'], ['crypto'])
       self.PrintExe(cmake, 'bssl', files['tool'], ['ssl', 'crypto'])
 
       cmake.write(
-R'''if(NOT ANDROID)
+R'''
+add_library(fipsmodule OBJECT src/crypto/fipsmodule/fips_shared_support.c)
+
+if(NOT ANDROID)
   find_package(Threads REQUIRED)
   target_link_libraries(crypto Threads::Threads)
 endif()
@@ -758,6 +762,7 @@ def main(platforms):
                     FindCFiles(os.path.join('src', 'third_party', 'fiat'), NoTestsNorFIPSFragments))
   fips_fragments = FindCFiles(os.path.join('src', 'crypto', 'fipsmodule'), OnlyFIPSFragments)
   ssl_source_files = FindCFiles(os.path.join('src', 'ssl'), NoTests)
+  decrepit_source_files = FindCFiles(os.path.join('src', 'decrepit'), NoTests)
   tool_h_files = FindHeaderFiles(os.path.join('src', 'tool'), AllFiles)
 
   # BCM shared library C files
@@ -840,6 +845,7 @@ def main(platforms):
       'pki_test': PrefixWithSrc(cmake['PKI_TEST_SOURCES']),
       'pki_test_data': PrefixWithSrc(cmake['PKI_TEST_DATA']),
       'ssl': ssl_source_files,
+      'decrepit': decrepit_source_files,
       'ssl_headers': ssl_h_files,
       'ssl_internal_headers': ssl_internal_h_files,
       'ssl_test': PrefixWithSrc(cmake['SSL_TEST_SOURCES']),
